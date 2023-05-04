@@ -3,6 +3,9 @@
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{adjustbox}
+\usepackage{framed}
 \setlength{\headheight}{15pt}
 
 \pagestyle{fancy}
@@ -76,6 +79,18 @@ QA76.8.C64B88 1986 \hspace{3 em}001.64'2 \hspace{3 em}84-6351
 \cleardoublepage
 \rfoot{\thepage}}
 
+\def\chapterpicture{
+	\pagestyle{plain}
+\newpage
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1\linewidth]{screenshot002}
+	\label{fig:screenshot002}
+\end{figure}
+\newpage
+%\pagestyle{myfancy}
+}
 \begin{document}
 \frontmatter
 \newpage
@@ -685,30 +700,404 @@ since it does not represent a microprocessor register. \texttt{IRQ} tells us to 
 address the computer will go if an \emph{interrupt} occurs; this information is
 stored in memory, not within the 650x.
 \section{MLM Commands}
-\blindtext
+The machine language monitor is now waiting for you to enter a command.
+The old BASIC commands don't work any more; \texttt{LIST} or \texttt{NEW} or \texttt{SYS}
+are not known to the \texttt{MLM}. We'll list some popular commands in a moment.
+
+First, let's discuss the command that takes us back to BASIC.
+X exits the \texttt{MLM} and returns to the BASIC monitor. Try it. Remember
+to press \texttt{RETURN} after you've typed the \texttt{X}, of course. You will return to
+the BASIC system, and the BASIC monitor will type \texttt{READY}. You're back
+in familiar territory. Now go back to the monitor with \texttt{SYS4} or \texttt{SYS8} or
+\texttt{MONITOR} as the case may be. BASIC ignores spaces: it doesn't matter
+if you type \texttt{SYS8} or \texttt{SYS 8}; just use the right number for your machine
+(\texttt{4} for PET/CBM, \texttt{8} for VIC/64).
+
+Remember: BASIC commands are no good in the \texttt{MLM}, and machine
+language monitor commands (such as \texttt{X}) are no good in BASIC. At first,
+you'll give the wrong commands at the wrong time because it's hard to
+keep track of which monitor system is active. If you type in an \texttt{MLM}
+command when you're in BASIC, you'll probably get a \texttt{?SYNTAX ERROR}
+reply. If you type in a BASIC command when you're in the machine language monitor, you'll probably get a question mark in the line you typed.\\
+
+Some other \texttt{MLM} commands are as follows:
+
+\begin{tabular}{llll}
+	\texttt{M} & \texttt{1000} & \texttt{1010} & (display memory from hex \texttt{1000} to
+	\texttt{1010}) \\
+	\texttt{R} &  &  & (display registers ... again!) \\
+	\texttt{G} & \texttt{033C} &  & (go to \texttt{033C} and start running a
+	program) \\
+\end{tabular}\\
+
+
+Do not enter this last (\texttt{G}) command. There is no program at address
+\texttt{\$033C} yet, so the computer would execute random instructions and we
+would lose control.
+There are two other fundamental instructions that we won't use yet: they
+are \texttt{S} for save and \texttt{L} for load. These are tricky. Until you learn about
+BASIC pointers (Chapter 6), leave them alone.
+
+\subsection{Displaying Memory Contents}
+
+You'll notice that there is a command for displaying the contents of memory, but there doesn't seem to be one for changing memory. You can do
+both, of course.
+Suppose we ask to display memory from \texttt{\$1000} to \texttt{\$1010} with the
+command\\
+
+\texttt{\begin{tabular}{lll}
+	M & 1000 & 1010 \\
+\end{tabular}}\\
+
+Be careful that you have exactly one space before each address. You
+might get a display that looks something like this:\\
+
+\texttt{\begin{tabular}{lllllllll}
+	.:1000 & 11 & 3A & E4 & 00 & 21 & 32 & 04 & AA \\
+	.:1008 & 20 & 4A & 49 & 4D & 20 & 42 & 55 & 54 \\
+	.:1010 & 54 & 45 & 52 & 46 & 49 & 45 & 4C & 44 \\
+\end{tabular}}\\
+
+C128 note: The above display will differ slightly if you are using C128.
+The section \emph{Exercises for the Commodore 128}, in Appendix E, gives
+details.
+
+The four-digit number at the start of each line represents the address in
+memory being displayed. The two-digit numbers to the right represent the
+contents of memory. Keep in mind that all numbers used by the machine
+language monitor are hexadecimal.
+
+In the example above, \texttt{\$1000} contains a value of \texttt{\$11}; \texttt{\$1001} contains
+a value of \texttt{\$3A}; and so on, until \texttt{\$1007}, which contains a value of \texttt{\$AA}.
+We continue with address \texttt{\$1008} on the next line. Most monitors show
+eight memory locations on each line, although some VIC-20 monitors show
+only five because of the narrow screen.
+
+We asked for memory locations up to address \texttt{\$1010} only; but we get
+the contents of locations up to \texttt{\$1017} in this case. The monitor always
+fills out a line, even if you don't ask for the extra values.
+
 \section{Changing Memory Contents}
-\blindtext
+
+Once we have displayed the contents of part of memory, we can change
+that part of memory easily. All we need to do is to move the cursor until
+it is positioned over the memory contents in question, type over the value
+displayed, and then press \texttt{RETURN}.
+This is quite similar to the way BASIC programs may be changed; you
+may type over on the screen, and when you press \texttt{RETURN}, the new line
+replaces the old. The general technique is called \emph{screen editing}.
+If you have displayed the contents of memory, as in the example above,
+you might like to change a number of locations to zero. Don't forget to
+strike \texttt{RETURN} so that the change on the screen will take effect in memory. 
+Give another \texttt{M} memory display command to confirm that memory
+has indeed been changed.
+
 \section{Changing Registers}
-\blindtext
+
+We may also change the contents of registers by typing over and pressing
+\texttt{RETURN}. You may take a register display with command \texttt{R}, and then
+change the contents of \texttt{PC}, \texttt{AC}, \texttt{XR}, and \texttt{YR}. Leave the contents of \texttt{SR}
+and \texttt{SP} unchanged—tricky things could happen unexpectedly if you experiment with these two.
+
 \section{Entering the Program}
-\blindtext
+C128 note: Remember to check \emph{Exercises for the Commodore 128}, in
+Appendix E, for the appropriate code.
+We might rewrite our program one last time, marking in the addresses
+that each instruction will occupy. You will recall that we have decided to
+put our program into memory starting at address \texttt{\$033C} (part of the
+cassette buffer).\\
+
+\texttt{\begin{tabular}{lllllll}
+	033C & AD & 80 & 03 &  & LDA & \$0380 \\
+	033F & AE & 81 & 03 &  & LDX & \$0381 \\
+	0342 & 8D & 81 & 03 &  & STA & \$0381 \\
+	0345 & 8E & 80 & 03 &  & STX & \$0380 \\
+	0348 & 00 &  &  &  &  &  \\
+\end{tabular}}\\
+
+Remember that most of the above listing is cosmetic. The business end
+of the program is the set of two-digit hex numbers shown to the left. At
+the extreme left, we have addresses—that's information, but not the program.
+At the right, we have the ``source code''—our notes on what the
+program means.
+
+How do we put it in? Easy. We must change memory. So, we go to the
+\texttt{MLM}, and display memory with\\
+
+\texttt{\begin{tabular}{lll}
+	M & 033C & 0348 \\
+\end{tabular}\\}
+
+We might have anything in that part of memory, but we'll get a display
+that looks something like\\
+
+\texttt{\begin{tabular}{lllllllll}
+	.:033C & xx & xx & xx & xx & xx & xx & xx & xx \\
+	.:0344 & xx & xx & xx & xx & xx & xx & xx & xx \\
+\end{tabular}\\}
+
+You won't see ``\texttt{xx},'' of course; there will be some hexadecimal value
+printed for each location. Let's move the cursor back and change this
+display so that it looks like this:\\
+
+\texttt{\begin{tabular}{lllllllll}
+		.:033C & AD & 80 & 03 & AE & 81 & 03 & 8D & 81 \\
+		.:0344 & 03 & 8E & 80 & 03 & 00 & xx & xx & xx \\
+	\end{tabular}\\}
+
+Don't type in the ``xx''—just leave whatever was there before. And be
+sure to press \texttt{RETURN} to activate each line; if you move the cursor down
+to get to the next line without pressing \texttt{RETURN}, the memory change
+would not happen.
+
+Display memory again (\texttt{M 033C 0348}) and make sure that the
+program is in place correctly. Check the memory display against the program listing, and be sure you understand how the program is being transcribed into memory.
+
+If everything looks in order, you're ready to run your first machine language
+program.
+\subsection{Preparation}
+There's one more thing that we need to do. If we want to swap the contents
+of addresses \texttt{\$0380} and \texttt{\$0381}, we'd better put something into those
+two locations so that we'll know that the swap has taken place correctly.
+Display memory with \texttt{M 0380 0381} and set the resulting display
+so that the values are\\
+
+\texttt{\begin{tabular}{lllllllll}
+	.:0380 & 11 & 99 & xx & xx & xx & xx & xx & xx \\
+\end{tabular}}\\
+
+Remember to press RETURN. Now we may run our program; we start it
+up with\\
+
+\texttt{\begin{tabular}{ll}
+	G & 033C\\
+\end{tabular}}\\
+
+The program runs so quickly that it seems instantaneous (the run time is
+less than one fifty thousandth of a second). The last instruction in our
+program was \texttt{BRK} for break, and that sends us straight to the \texttt{MLM} with
+a display of \texttt{*B} (for break, of course) plus all the registers.
+
+Nothing seems to have changed. But wait. Look carefully at the register
+display. Can you explain the values you see in the \texttt{AC} and \texttt{XR} registers?
+Can you explain the \texttt{PC} value?
+
+Now you may display the data values we planned to exchange. Give the
+memory display command \texttt{M 0380 0381}—have the contents of
+the two locations changed?
+
+They'd better have changed. Because that's what the writing of our program was all about.
+
 \section{Things You Have Learned}
-\blindtext
+
+\begin{itemize}
+	\item Computers use binary. If we want to work with the inner fabric of the computer, we must come to terms with binary values.
+	\item Hexadecimal notation is for humans, not for computers. It's a less clumsy way for people to cope with binary numbers.
+	\item The 650x microprocessor chip communicates with memory by sending an address over its memory bus.
+	\item The 650x has internal work areas called registers.
+	\item The program counter tells us the address from which the processor will get its next instruction.
+	\item Three registers, called \texttt{A}, \texttt{X}, and \texttt{Y}, are used to hold and manipulate data. They may be loaded from memory, and stored into memory.
+	\item Addresses used in 650x instructions are ``flipped:'' the low byte comes first, followed by the high byte.
+	\item The machine language monitor gives us a new type of communications path into the computer. Among other things, it allows us to inspect and change memory in hexadecimal
+\end{itemize}
 \section{Detail: Program Execution}
-\blindtext
+When we say \texttt{G D33C} to start up our program, the microprocessor goes
+through the following steps:
+
+\begin{enumerate}
+	\item It asks for the contents of \texttt{\$033C}; it receives \texttt{\$AD}, which it recognizes as the op code \texttt{"load A."} It realizes that it will need a two-byte address to go with this instruction.
+	\item It asks for the contents of \texttt{\$033D}, and then \texttt{\$033E}. As it receives the values of \$80 and \$03 it gathers them into an ``instruction address.''
+	\item The microprocessor now has the whole instruction. The \texttt{PC} has moved along to \texttt{\$033F}. The 650x now \emph{executes} the instruction. It sends address \texttt{\$0380} to the address bus; when it gets the contents (perhaps \texttt{\$11}), it delivers this to the \texttt{A} register. The \texttt{A} register now contains \texttt{\$11}.
+	\item The 650x is ready to take on the next instruction; the address \texttt{\$033F} goes from the \texttt{PC} out to the address bus; and the program continues.
+\end{enumerate}
+
 \section{Questions and Projects}
-\blindtext
+Do you know that your computer has a part of memory called ``screen
+memory''? Whatever you put into that part of memory appears on the
+screen. You'll find this described in BASIC texts as ``screen \texttt{POKE}-ing.''
+The screen on the PET/CBM is at \texttt{\$8000} and up; on the VIC, it's often
+(but not always) at \texttt{\$1E00} and up; on the Commodore 64, it's usually at
+\texttt{\$0400}; and on the PLUS/4, it may be found at \texttt{\$0C00}. With the C128,
+the 40-column screen is at \texttt{\$0400}, but if you are in the 80-column mode,
+the screen is \emph{not} mapped directly to memory.
+
+If you write a program to store information in the screen memory address,
+the appropriate characters will appear on the screen. You might like to try
+this. You can even ``swap'' characters around on the screen, if you wish.
+
+Two pitfalls may arise. First, you might write a perfect program that places
+information near the top of the screen; then, when the program finishes,
+the screen might scroll, and the results would disappear. Second, the VIC
+and Commodore 64 use color, and you might inadvertently produce white-
+on-white characters; these are hard to see.
+
+Here's another question. Suppose I asked you to write a program to move
+the contents of five locations, \texttt{\$0380} to \texttt{\$0384}, in an ``end-around''
+fashion, so that the contents of \texttt{\$0380} moved to \texttt{\$0381}, \texttt{\$0381} to
+\texttt{\$0382}, and so on, with the contents of \texttt{\$0384} moved to \texttt{\$0380}. At
+first glance, we seem to have a problem: we don't have five data registers,
+we have only three (A, X, and Y). Can you think of a way of doing the
+job?
+
+\chapterpicture
+
 \chapter{Controlling Output}
-\blindtext
+This chapter discusses:
+\begin{itemize}
+	\item Calling machine language subroutines
+	\item The \texttt{PRINT} subroutine
+	\item Immediate addressing
+	\item Calling machine language from BASIC
+	\item Tiny assembler programs
+	\item Indexed addressing
+	\item Simple loops
+	\item Disassembly
+\end{itemize}
 \newpage
+\pagestyle{myfancy}
 \section{Calling Machine Language Subroutines}
-\blindtext
-\section{CHROUT—The Output Subroutine}
-\blindtext
+In BASIC, a ``package'' of program statements called a \emph{subroutine} may
+be brought into action with a \texttt{GOSUB} command. The subroutine ends with
+a \texttt{RETURN} statement, which causes the program to return to the \emph{calling
+point}, i.e., the statement immediately following \texttt{GOSUB}.
+
+The same mechanism is available in machine language. A group of instructions may be invoked with a \emph{jump subroutine} (\texttt{JSR}) command. The
+650x goes to the specified address and performs the instructions given
+there until it encounters a \emph{return from subroutine} (\texttt{RTS}) command, at
+which time it resumes execution of instructions at the calling point: the
+instruction immediately following \texttt{JSR}.
+
+For example, if at address \texttt{\$033C} I code the instruction \texttt{JSR} \$1234,
+the 650x will change its PC to \$1234 and start to take instructions from
+that address. Execution will continue until the instruction \texttt{RTS} is encountered. 
+At this time, the microprocessor would switch back to the instruction
+following the \texttt{JSR}, which in this case would be address \texttt{\$033F} (the \texttt{JSR}
+instruction is three bytes long).
+
+As in BASIC, subroutines may be ``nested;'' that is, one subroutine may
+call another, and that subroutine may call yet another. We will deal with
+subroutine mechanisms in more detail later. For the moment, we'll concern
+ourselves with calling prewritten subroutines.
+
+\subsection{Prewritten Subroutines}
+A number of useful subroutines are permanently stored in the \texttt{ROM} memory of the computer. All Commodore machines have a standard set of
+subroutines that may be called up by your programs. They are always at the
+same addresses, and perform in about the same way regardless of which
+Commodore machine is used: PET, CBM, Commodore 64, PLUS/4, Commodore 128, or VIC-20. These routines are called the \emph{kernal} subroutines.
+Details on them can be found in the appropriate Commodore reference
+manuals, but we'll give usage information here.
+
+The original meaning of the term \texttt{kernal} seems to be lost in legend. It was
+originally an acronym, standing for something like ``Keyboard Entry Read,
+Network and Link.'' Today, it's just the label we apply to the operating
+system that makes screen, keyboard, other input/output and control mechanisms work together. To describe this central control system, we might
+choose to correct the spelling so as to get the English word, ``kernel.'' For
+now, we'll use Commodore's word.
+
+The three major kernal subroutines that we will deal with in the next few
+chapters are shown here:\\
+
+\begin{tabular}{lllll}
+	\emph{Address} &  & \emph{Name} &  & \emph{What it does} \\
+	\hline
+	\texttt{\$FFD2} &  & \texttt{CHROUT} &  & Outputs an ASCII character \\
+	\texttt{\$FFE4} &  & \texttt{GETIN} &  & Gets an ASCII character \\
+	\texttt{\$FFE1} &  & \texttt{STOP} &  & Checks the RUN/STOP key \\
+\end{tabular}\\
+
+With the first two subroutines, we can input and output data easily. The
+third allows us to honor the \texttt{RUN/STOP} key, to guard against certain types
+of programming error. In this chapter, we'll use \texttt{CHROUT} to print information to the screen.
+
+\section{\texttt{CHROUT}—The Output Subroutine}
+The CHROUT subroutine at address \$FFD2 may be used for all types
+of output: to screen, to disk, to cassette tape, or to other devices. It's
+similar to PRINT and PR IN T\#, except that it sends only one character.
+For the moment, we'll use CHROUT only for sending information to the
+computer screen.\\\\
+
+\begin{framed}
+	\begin{tabulary}{0.9\textwidth}{lL}
+		Subroutine: & \texttt{CHROUT} \\
+		Address: & \texttt{\$FFD2} \\
+		Action: & Sends a copy of the character in the \texttt{A} register to the
+		output channel. The output channel is the computer screen
+		unless arrangements have been made to switch it.\\
+	\end{tabulary}\\\\
+	The character sent is usually ASCII (or PET ASCII). When sent to the
+	screen, all special characters—graphics, color codes, cursor movements—will be honored in the usual way.\\\\
+	Registers: All data registers are preserved during a \texttt{CHROUT} call.
+	Upon return from the subroutine, \texttt{A}, \texttt{X}, and \texttt{Y} will not have changed.\\\\
+	Status: Status flags may be changed. In the most recent Commodore
+	machines, the \texttt{C} (carry) flag indicates some type of problem with output.
+\end{framed}
+\noindent 
+To print a letter X on the screen, we would need to follow these steps:
+\begin{enumerate}
+	\item Bring the ASCII letter \texttt{X} (\texttt{\$58}) into the \texttt{A} register;
+	\item \texttt{JSR} to address \texttt{\$FFD2}.
+\end{enumerate}
+
 \section{Why Not POKE?}
-\blindtext
+26 MACHINE LANGUAGE FOR COMMODORE MACHINES
+Why Not POKE
+It may seem that there's an easier way to make things appear on the
+screen. We might POKE information directly to screen memory; in machine language, we would call this a store rather than a POKE, of course.
+The moment we change something in this memory area, the information
+displayed on the screen will change. Screen memory is generally located
+at the following addresses:
+
+
+\begin{tabular}{llll}
+PET/CBM:              && \texttt{\$8000} & and up (decimal 32768)\\
+Commodore 64 and 128: && \texttt{\$0400} & and up (decimal 1024)\\
+264/364               && \texttt{\$0C00} & and up (decimal 3072)\\
+VIC-20:               && \texttt{\$1E00} & and up (decimal 7680)\\
+\end{tabular}\\
+
+
+The screen memory of the VIC-20 in particular may move around a good
+deal, depending on how much additional \texttt{RAM} memory has been fitted.
+
+Occasionally, screen \texttt{POKE}s are the best way to do the job. But most of
+the time we'll use the \texttt{CHROUT}, \texttt{\$FFD2} subroutine. Here are some of
+the reasons why:
+
+\begin{itemize}
+	\item As with \texttt{PRINT}, we won't need to worry about where to place the next character; it will be positioned automatically at the cursor point.
+	\item If the screen is filled, scrolling will take place automatically.
+	\item Screen memory needs special characters. For example, the character \texttt{X} has a standard ASCII code of \texttt{\$58}, but to \texttt{POKE} it to the screen we'd need to use the code \texttt{\$18}. The \texttt{CHROUT} subroutine uses \texttt{\$58}.
+	\item Screen memory may move around, depending on the system and the program. The \texttt{POKE} address would need to change; but \texttt{CHROUT} keeps working.
+	\item Special control characters are honored: \texttt{\$0D} for \texttt{RETURN}, to start a new line; cursor movements; color changes. We can even clear the screen by loading the screen-clear character (\texttt{\$93}) and calling \texttt{\$FFD2}.
+	\item To \texttt{POKE} the screen of the Commodore machines with color, the corresponding color nibble memory must also be \texttt{POKE}d (see the appropriate memory map in Appendix C). With the subroutine at \texttt{\$FFD2}, color is set automatically.
+\end{itemize}
+
 \section{A Print Project}
-\blindtext
+Let's write some code to print the letter H on the screen. Once again, we'll
+use address \$033C, the cassette buffer, to hold our program. Reminder:
+be sure to have your monitor loaded and ready before you start this project.
+First, the plan; we lay out the instructions\\
+
+\texttt{\begin{tabular}{l}
+		LDA \#\$48\\
+\end{tabular}}\\
+
+We're using a new symbol (\texttt{\#}) to signal a special type of information. It
+goes by a variety of names: pounds sign, sharp, hash mark, or numbers
+sign. A more formal name for the symbol is \emph{octothorpe}, meaning ``eight
+points.'' Whatever you call it, the symbol means ``the following information
+is not an address, it's a value.'' In other words, we don't want the computer
+to go to address \texttt{\$48}, we want it to load the \texttt{A} register with the \emph{value}
+\texttt{\$48}, which represents the ASCII letter \texttt{H}. This type of information access
+is called immediate addressing. In other words, take the information immediately, don't go to memory for it.\\
+
+\texttt{\begin{tabular}{l}
+		JSR \$FFD2\\
+\end{tabular}}\\
+
+The previous instruction brought the letter \texttt{H} into the \texttt{A} register; this one
+prints it to the screen. Now all we need to do is quit. \texttt{BRK} takes us to the
+machine language monitor.
 \section{Monitor Extensions}
 \blindtext
 \section{Checking: The Disassembler}
